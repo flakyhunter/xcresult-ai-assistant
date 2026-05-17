@@ -16,7 +16,7 @@ AI-powered assistant for analyzing XCTest failures, xcresult bundles, and test l
 
 ```bash
 # Clone the repository
-git clone https://github.com/amatsko/xcresult-ai-assistant.git
+git clone https://github.com/flakyhunter/xcresult-ai-assistant.git
 cd xcresult-ai-assistant
 
 # Install with pip (editable mode for development)
