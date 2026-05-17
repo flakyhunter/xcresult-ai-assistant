@@ -7,6 +7,7 @@ from pathlib import Path
 from xcresult_ai_assistant.models.analysis import AnalysisResult
 from xcresult_ai_assistant.models.report import AnalysisReport, ReportConfig, ReportFormat
 from xcresult_ai_assistant.reports.console_reporter import ConsoleReporter
+from xcresult_ai_assistant.reports.html_reporter import HtmlReporter
 from xcresult_ai_assistant.reports.json_reporter import JsonReporter
 from xcresult_ai_assistant.reports.markdown_reporter import MarkdownReporter
 
@@ -18,7 +19,7 @@ class ReportFactory:
     def create_reporter(
         format: ReportFormat,
         config: ReportConfig | None = None,
-    ) -> ConsoleReporter | MarkdownReporter | JsonReporter:
+    ) -> ConsoleReporter | MarkdownReporter | JsonReporter | HtmlReporter:
         """Create a reporter for the given format."""
         if config is None:
             config = ReportConfig(format=format)
@@ -27,6 +28,7 @@ class ReportFactory:
             ReportFormat.CONSOLE: ConsoleReporter,
             ReportFormat.MARKDOWN: MarkdownReporter,
             ReportFormat.JSON: JsonReporter,
+            ReportFormat.HTML: HtmlReporter,
         }
 
         reporter_class = reporters.get(format, ConsoleReporter)
@@ -104,6 +106,7 @@ class ReportFactory:
         formats_and_extensions = [
             (ReportFormat.MARKDOWN, ".md"),
             (ReportFormat.JSON, ".json"),
+            (ReportFormat.HTML, ".html"),
         ]
 
         for format, extension in formats_and_extensions:

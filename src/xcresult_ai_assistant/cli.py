@@ -55,7 +55,7 @@ def analyze(
     ],
     format: Annotated[
         str,
-        typer.Option("--format", "-f", help="Output format: console, markdown, json"),
+        typer.Option("--format", "-f", help="Output format: console, markdown, json, html"),
     ] = "console",
     output: Annotated[
         Optional[Path],
@@ -94,7 +94,7 @@ def analyze(
         report_format = ReportFormat(format.lower())
     except ValueError:
         console.print(f"[red]Invalid format: {format}[/red]")
-        console.print("Valid formats: console, markdown, json")
+        console.print("Valid formats: console, markdown, json, html")
         raise typer.Exit(1)
 
     # Parse input
@@ -441,6 +441,249 @@ def categories(
 
 
 @app.command()
+def explain(
+    path: Annotated[
+        Path,
+        typer.Argument(help="Path to test results", exists=True),
+    ],
+    test_name: Annotated[
+        Optional[str],
+        typer.Option("--test", "-t", help="Specific test name to explain (partial match)"),
+    ] = None,
+    top: Annotated[
+        int,
+        typer.Option("--top", "-n", help="Number of top failures to explain"),
+    ] = 3,
+) -> None:
+    """Explain test failures with AI-style root cause analysis.
+
+    Provides deep analysis of failures including:
+    - Root cause identification
+    - Confidence scores
+    - Actionable fix suggestions
+    - Code examples
+
+    Examples:
+        xcresult-ai explain results.log
+        xcresult-ai explain results.xcresult --test testLogin
+        xcresult-ai explain results.log --top 5
+    """
+    from rich.markdown import Markdown
+    from rich.panel import Panel
+    from rich.table import Table
+
+    from xcresult_ai_assistant.ai.suggestion_engine import SuggestionEngine
+
+    parser = AutoParser()
+    result = parser.parse(path)
+
+    if not result.success or result.test_run is None:
+        console.print("[red]Failed to parse test results[/red]")
+        raise typer.Exit(1)
+
+    analyzer = FailureAnalyzer()
+    analysis = analyzer.analyze(result.test_run)
+
+    if not analysis.failures:
+        console.print("[green]No failures to explain - all tests passed![/green]")
+        raise typer.Exit(0)
+
+    # Filter by test name if provided
+    failures = analysis.failures
+    if test_name:
+        failures = [f for f in failures if test_name.lower() in f.full_name.lower()]
+        if not failures:
+            console.print(f"[yellow]No failures found matching '{test_name}'[/yellow]")
+            raise typer.Exit(1)
+        console.print(f"[dim]Found {len(failures)} failures matching '{test_name}'[/dim]")
+    else:
+        failures = analysis.prioritized_failures[:top]
+
+    engine = SuggestionEngine()
+    flaky_detector = FlakyDetector()
+
+    console.print()
+    console.print("[bold blue]🔍 AI-Powered Failure Analysis[/bold blue]")
+    console.print()
+
+    for i, failure in enumerate(failures, 1):
+        # Calculate scores
+        flaky_score = flaky_detector.calculate_flaky_score(failure)
+        confidence_pct = int(failure.confidence * 100)
+
+        # Determine root cause likelihood
+        root_cause_guess = _infer_root_cause(failure)
+
+        # Get suggestions
+        suggestions = engine.get_suggestions(failure.category, limit=3)
+
+        # Build explanation panel
+        header = f"[bold]{i}. {failure.full_name}[/bold]"
+
+        # Severity color
+        severity_colors = {
+            "critical": "red",
+            "high": "bright_red",
+            "medium": "yellow",
+            "low": "blue",
+            "info": "dim",
+        }
+        sev_color = severity_colors.get(failure.severity.value.lower(), "white")
+
+        # Status indicators
+        indicators = []
+        if failure.is_flaky:
+            indicators.append("⚠️  Likely Flaky")
+        if failure.is_app_issue:
+            indicators.append("🐛 App Bug")
+        if failure.is_infrastructure:
+            indicators.append("🔧 Infrastructure")
+        if failure.is_test_issue:
+            indicators.append("🧪 Test Issue")
+
+        content_parts = [
+            f"[{sev_color}]Severity: {failure.severity.value}[/{sev_color}]",
+            f"Category: [cyan]{failure.category.value}[/cyan]",
+            f"Confidence: {confidence_pct}%",
+            f"Flaky Score: {flaky_score:.2f}",
+        ]
+
+        if failure.location != "unknown":
+            content_parts.append(f"Location: [dim]{failure.location}[/dim]")
+
+        if indicators:
+            content_parts.append("")
+            content_parts.extend(indicators)
+
+        # Message
+        content_parts.append("")
+        content_parts.append("[bold]Error Message:[/bold]")
+        msg = failure.message[:300] if failure.message else "(no message)"
+        content_parts.append(f"[dim]{msg}[/dim]")
+
+        # Root cause analysis
+        content_parts.append("")
+        content_parts.append("[bold yellow]🎯 Likely Root Cause:[/bold yellow]")
+        content_parts.append(root_cause_guess)
+
+        # Suggestions
+        if suggestions:
+            content_parts.append("")
+            content_parts.append("[bold green]💡 Recommended Actions:[/bold green]")
+            for j, sug in enumerate(suggestions, 1):
+                content_parts.append(f"  {j}. [bold]{sug.title}[/bold]")
+                content_parts.append(f"     {sug.description}")
+                if sug.action:
+                    content_parts.append(f"     [cyan]→ {sug.action}[/cyan]")
+                if sug.code_example:
+                    code = sug.code_example.replace('\n', '\n       ')
+                    content_parts.append(f"     [dim]```swift\n       {code}\n       ```[/dim]")
+
+        panel_content = "\n".join(content_parts)
+        console.print(Panel(panel_content, title=header, expand=True))
+        console.print()
+
+    # Summary
+    if len(analysis.failures) > len(failures):
+        console.print(
+            f"[dim]Showing {len(failures)} of {len(analysis.failures)} failures. "
+            f"Use --top or --test to see more.[/dim]"
+        )
+
+
+def _infer_root_cause(failure) -> str:
+    """Infer likely root cause based on failure characteristics."""
+    from xcresult_ai_assistant.models.failure import FailureCategory
+
+    category = failure.category
+    message = failure.message.lower() if failure.message else ""
+
+    root_causes = {
+        FailureCategory.MISSING_ELEMENT: (
+            "The UI element couldn't be found. This is often caused by:\n"
+            "  • Element not yet loaded (async timing issue)\n"
+            "  • Accessibility identifier changed or missing\n"
+            "  • Element is conditionally hidden\n"
+            "  • Wrong navigation path to the screen"
+        ),
+        FailureCategory.TIMEOUT: (
+            "Operation exceeded the timeout limit. Common causes:\n"
+            "  • Network request slower than expected\n"
+            "  • UI animation blocking the test\n"
+            "  • Background loading not completing\n"
+            "  • Deadlock or infinite loop in app code"
+        ),
+        FailureCategory.WAIT_TIMEOUT: (
+            "Explicit wait condition never became true. Usually means:\n"
+            "  • Element exists but in wrong state\n"
+            "  • Condition is flaky (passes sometimes)\n"
+            "  • App state diverged from test expectations\n"
+            "  • Need to increase timeout or add intermediate waits"
+        ),
+        FailureCategory.APP_CRASH: (
+            "Application crashed during test execution. Investigate:\n"
+            "  • Force unwrapping nil optionals\n"
+            "  • Array index out of bounds\n"
+            "  • Unhandled exceptions in async code\n"
+            "  • Memory pressure issues"
+        ),
+        FailureCategory.ASSERTION_FAILURE: (
+            "Test assertion did not pass. This could mean:\n"
+            "  • Expected value differs from actual\n"
+            "  • Business logic bug in app\n"
+            "  • Test expectations are incorrect\n"
+            "  • Data dependency issue"
+        ),
+        FailureCategory.NETWORK_ERROR: (
+            "Network request failed. Possible reasons:\n"
+            "  • Server unreachable or returning errors\n"
+            "  • Test running without mock server\n"
+            "  • SSL/certificate issues\n"
+            "  • Request timeout"
+        ),
+        FailureCategory.RACE_CONDITION: (
+            "Timing-dependent failure detected. Usually caused by:\n"
+            "  • Async operations completing out of order\n"
+            "  • Shared mutable state between tests\n"
+            "  • Missing synchronization points\n"
+            "  • Test isolation problems"
+        ),
+        FailureCategory.SYSTEM_ALERT: (
+            "System dialog interfered with test. Common alerts:\n"
+            "  • Location permission\n"
+            "  • Push notification permission\n"
+            "  • Tracking transparency prompt\n"
+            "  • Add UIInterruptionMonitor to handle automatically"
+        ),
+        FailureCategory.ELEMENT_NOT_HITTABLE: (
+            "Element exists but cannot be tapped. Reasons:\n"
+            "  • Covered by another view (keyboard, popup)\n"
+            "  • Off-screen and needs scrolling\n"
+            "  • Alpha is 0 or isUserInteractionEnabled is false\n"
+            "  • Inside a disabled parent container"
+        ),
+    }
+
+    if category in root_causes:
+        return root_causes[category]
+
+    # Generic fallback with message analysis
+    if "timeout" in message:
+        return "Operation timed out. Consider increasing wait times or mocking slow operations."
+    if "not found" in message or "no matches" in message:
+        return "Element or resource not found. Verify identifiers and navigation state."
+    if "crash" in message or "exc_" in message:
+        return "Application crash detected. Check console logs for crash details."
+
+    return (
+        "Unable to determine specific root cause. Review:\n"
+        "  • Full stack trace for error origin\n"
+        "  • Test logs for preceding events\n"
+        "  • App state at time of failure"
+    )
+
+
+@app.command()
 def info() -> None:
     """Show tool information and capabilities."""
     from rich.panel import Panel
@@ -469,9 +712,11 @@ Version: {__version__}
   • Console (rich terminal output)
   • Markdown (for documentation/PRs)
   • JSON (for CI/CD integration)
+  • HTML (styled web reports)
 
 [bold]Commands:[/bold]
   analyze     Analyze test results
+  explain     AI-powered failure explanation
   summarize   Summarize multiple result files
   flaky       Detect flaky tests
   categories  Show failure breakdown

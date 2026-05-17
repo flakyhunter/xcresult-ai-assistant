@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from xcresult_ai_assistant.reports.console_reporter import ConsoleReporter
+from xcresult_ai_assistant.reports.html_reporter import HtmlReporter
 from xcresult_ai_assistant.reports.markdown_reporter import MarkdownReporter
 from xcresult_ai_assistant.reports.json_reporter import JsonReporter
 from xcresult_ai_assistant.reports.report_factory import ReportFactory
@@ -209,6 +210,77 @@ class TestJsonReporter:
         assert len(data["failures"]) == 3
 
 
+class TestHtmlReporter:
+    """Tests for HtmlReporter."""
+
+    def test_generate_report(self, sample_analysis: AnalysisResult) -> None:
+        """Test HTML report generation."""
+        reporter = HtmlReporter()
+        report = reporter.generate(sample_analysis)
+
+        assert report.format == ReportFormat.HTML
+        assert "<!DOCTYPE html>" in report.content
+        assert "<html" in report.content
+        assert "</html>" in report.content
+
+    def test_report_contains_stats(self, sample_analysis: AnalysisResult) -> None:
+        """Test report contains statistics."""
+        reporter = HtmlReporter()
+        report = reporter.generate(sample_analysis)
+
+        assert "10" in report.content  # Total tests
+        assert "7" in report.content  # Passed
+        assert "3" in report.content  # Failed
+        assert "70.0%" in report.content  # Pass rate
+
+    def test_report_contains_failures(self, sample_analysis: AnalysisResult) -> None:
+        """Test report contains failure details."""
+        reporter = HtmlReporter()
+        report = reporter.generate(sample_analysis)
+
+        assert "testLogin" in report.content
+        assert "testCrash" in report.content
+        assert "testButton" in report.content
+
+    def test_report_contains_categories(self, sample_analysis: AnalysisResult) -> None:
+        """Test report contains category breakdown."""
+        config = ReportConfig(format=ReportFormat.HTML, group_by_category=True)
+        reporter = HtmlReporter(config)
+        report = reporter.generate(sample_analysis)
+
+        assert "timeout" in report.content
+        assert "app_crash" in report.content
+
+    def test_report_has_css_styles(self, sample_analysis: AnalysisResult) -> None:
+        """Test report has embedded CSS."""
+        reporter = HtmlReporter()
+        report = reporter.generate(sample_analysis)
+
+        assert "<style>" in report.content
+        assert "</style>" in report.content
+        assert "stat-card" in report.content
+
+    def test_report_has_sections(self, sample_analysis: AnalysisResult) -> None:
+        """Test report has expected sections."""
+        reporter = HtmlReporter()
+        report = reporter.generate(sample_analysis)
+
+        assert "summary" in report.sections
+        assert "stats" in report.sections
+        assert "failures" in report.sections
+
+    def test_report_escapes_html(self, sample_analysis: AnalysisResult) -> None:
+        """Test report properly escapes HTML in content."""
+        # Modify a failure message to include HTML-like content
+        sample_analysis.failures[0].message = "<script>alert('xss')</script>"
+        reporter = HtmlReporter()
+        report = reporter.generate(sample_analysis)
+
+        # Should be escaped
+        assert "&lt;script&gt;" in report.content
+        assert "<script>alert" not in report.content
+
+
 class TestReportFactory:
     """Tests for ReportFactory."""
 
@@ -226,6 +298,11 @@ class TestReportFactory:
         """Test creating JSON reporter."""
         reporter = ReportFactory.create_reporter(ReportFormat.JSON)
         assert isinstance(reporter, JsonReporter)
+
+    def test_create_html_reporter(self) -> None:
+        """Test creating HTML reporter."""
+        reporter = ReportFactory.create_reporter(ReportFormat.HTML)
+        assert isinstance(reporter, HtmlReporter)
 
     def test_generate_report(self, sample_analysis: AnalysisResult) -> None:
         """Test generate_report factory method."""
@@ -264,6 +341,15 @@ class TestReportFactory:
 
         assert ReportFormat.MARKDOWN in reports
         assert ReportFormat.JSON in reports
+        assert ReportFormat.HTML in reports
 
         assert (tmp_path / "test_report.md").exists()
         assert (tmp_path / "test_report.json").exists()
+        assert (tmp_path / "test_report.html").exists()
+
+    def test_detect_html_format(self, sample_analysis: AnalysisResult, tmp_path: Path) -> None:
+        """Test format detection for HTML extension."""
+        html_path = tmp_path / "report.html"
+        ReportFactory.generate_and_save(sample_analysis, html_path)
+        assert html_path.exists()
+        assert "<!DOCTYPE html>" in html_path.read_text()

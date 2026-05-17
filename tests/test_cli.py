@@ -168,6 +168,66 @@ class TestCLI:
         assert result.exit_code != 0
         assert "Invalid format" in result.stdout
 
+    def test_analyze_with_html_output(self, examples_dir: Path, tmp_path: Path) -> None:
+        """Test analyzing with HTML output."""
+        log_file = examples_dir / "sample_xctest_log.txt"
+        if not log_file.exists():
+            pytest.skip("Example file not found")
+
+        output_file = tmp_path / "report.html"
+        result = runner.invoke(app, [
+            "analyze", str(log_file),
+            "--format", "html",
+            "--output", str(output_file),
+        ])
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+        content = output_file.read_text()
+        assert "<!DOCTYPE html>" in content
+        assert "<style>" in content
+
+    def test_explain_command(self, examples_dir: Path) -> None:
+        """Test explain command."""
+        log_file = examples_dir / "sample_xctest_log.txt"
+        if not log_file.exists():
+            pytest.skip("Example file not found")
+
+        result = runner.invoke(app, ["explain", str(log_file)])
+        assert result.exit_code == 0
+        assert "Analysis" in result.stdout or "Failure" in result.stdout
+
+    def test_explain_with_top_option(self, examples_dir: Path) -> None:
+        """Test explain command with --top option."""
+        log_file = examples_dir / "sample_xctest_log.txt"
+        if not log_file.exists():
+            pytest.skip("Example file not found")
+
+        result = runner.invoke(app, ["explain", str(log_file), "--top", "5"])
+        assert result.exit_code == 0
+
+    def test_explain_passing_tests(self, examples_dir: Path) -> None:
+        """Test explain command with passing tests."""
+        log_file = examples_dir / "passing_tests.txt"
+        if not log_file.exists():
+            pytest.skip("Example file not found")
+
+        result = runner.invoke(app, ["explain", str(log_file)])
+        assert result.exit_code == 0
+        assert "passed" in result.stdout.lower() or "no failures" in result.stdout.lower()
+
+    def test_info_shows_html_format(self) -> None:
+        """Test that info command shows HTML format."""
+        result = runner.invoke(app, ["info"])
+        assert result.exit_code == 0
+        assert "HTML" in result.stdout or "html" in result.stdout
+
+    def test_info_shows_explain_command(self) -> None:
+        """Test that info command shows explain command."""
+        result = runner.invoke(app, ["info"])
+        assert result.exit_code == 0
+        assert "explain" in result.stdout
+
 
 class TestCLIIntegration:
     """Integration tests for CLI."""

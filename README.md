@@ -1,69 +1,66 @@
 # XCResult AI Assistant
 
-AI-powered assistant for analyzing XCTest failures, xcresult bundles, and test logs. Automatically categorizes failures, detects flaky tests, and provides actionable debugging suggestions.
+[![CI](https://github.com/flakyhunter/xcresult-ai-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/flakyhunter/xcresult-ai-assistant/actions/workflows/ci.yml)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+AI-powered assistant for analyzing XCTest failures, xcresult bundles, and test logs. Automatically categorizes failures, detects flaky tests, and provides actionable debugging suggestions with root cause analysis.
 
 ## Features
 
 - **Multi-format parsing**: XCTest logs, JUnit XML, xcresult bundles
-- **Intelligent failure categorization**: 23+ failure categories including timeouts, crashes, missing elements, network errors, race conditions
-- **Flaky test detection**: Identifies tests likely to be flaky based on failure patterns
-- **AI-style debugging suggestions**: Heuristics-based suggestions with code examples
-- **Root cause analysis**: Groups related failures and identifies common causes
-- **Multiple output formats**: Console (rich), Markdown, JSON
-- **Priority scoring**: Helps triage failures by severity and actionability
+- **30+ failure categories**: Timeouts, crashes, missing elements, network errors, race conditions, and more
+- **AI-style root cause analysis**: Intelligent failure explanation with confidence scores
+- **Flaky test detection**: Identifies tests likely to be flaky with scoring
+- **Smart debugging suggestions**: Context-aware recommendations with Swift code examples
+- **Multiple output formats**: Console, Markdown, JSON, HTML
+- **Priority-based triage**: Ranks failures by severity and actionability
 
 ## Installation
 
 ```bash
-# Clone the repository
+# Install from GitHub
+pip install git+https://github.com/flakyhunter/xcresult-ai-assistant.git
+
+# Or clone and install locally
 git clone https://github.com/flakyhunter/xcresult-ai-assistant.git
 cd xcresult-ai-assistant
-
-# Install with pip (editable mode for development)
 pip install -e .
-
-# Or install dependencies directly
-pip install -r requirements.txt
 ```
 
 ### Requirements
 
 - Python 3.9+
-- macOS (for xcresult bundle parsing with xcresulttool)
+- macOS (required for xcresult bundle parsing)
 
 ## Quick Start
 
 ```bash
-# Analyze a test log file
+# Analyze test results
 xcresult-ai analyze tests.log
 
-# Analyze with markdown output
-xcresult-ai analyze tests.log --format markdown --output report.md
+# Get AI-powered failure explanations
+xcresult-ai explain tests.log
 
-# Analyze with debugging suggestions
-xcresult-ai analyze tests.log --suggestions
+# Generate HTML report
+xcresult-ai analyze tests.log --format html --output report.html
 
 # Detect flaky tests
 xcresult-ai flaky tests.log
 
 # View failure categories
 xcresult-ai categories tests.log
-
-# Summarize multiple test files
-xcresult-ai summarize ./test-results/
 ```
 
 ## CLI Commands
 
-### `analyze`
-
-Analyze test results and generate a detailed report.
+### `analyze` - Analyze test results
 
 ```bash
 xcresult-ai analyze <path> [options]
 
 Options:
-  --format, -f         Output format: console, markdown, json (default: console)
+  --format, -f         Output format: console, markdown, json, html (default: console)
   --output, -o         Output file path
   --verbose, -V        Enable verbose output
   --suggestions        Include debugging suggestions (default: true)
@@ -71,35 +68,76 @@ Options:
   --stack-traces       Include full stack traces
   --max-failures, -m   Maximum failures to show (default: 50)
   --group-by-category  Group failures by category (default: true)
+
+Examples:
+  xcresult-ai analyze results.xcresult
+  xcresult-ai analyze test-output.log --format markdown -o report.md
+  xcresult-ai analyze results.xcresult --format html -o report.html
 ```
 
-### `flaky`
+### `explain` - AI-powered failure analysis
 
-Detect and analyze potentially flaky tests.
+Deep analysis of failures with root cause identification, confidence scores, and fix suggestions.
+
+```bash
+xcresult-ai explain <path> [options]
+
+Options:
+  --test, -t     Specific test name to explain (partial match)
+  --top, -n      Number of top failures to explain (default: 3)
+
+Examples:
+  xcresult-ai explain tests.log
+  xcresult-ai explain results.xcresult --test testLogin
+  xcresult-ai explain tests.log --top 5
+```
+
+**Sample output:**
+```
+🔍 AI-Powered Failure Analysis
+
+╭─ 1. AuthTests.testLogin ─────────────────────────────────────────╮
+│ Severity: MEDIUM                                                  │
+│ Category: timeout                                                 │
+│ Confidence: 85%                                                   │
+│ Flaky Score: 0.45                                                 │
+│                                                                   │
+│ Error Message:                                                    │
+│ Timed out waiting for login button to appear                      │
+│                                                                   │
+│ 🎯 Likely Root Cause:                                             │
+│ Operation exceeded the timeout limit. Common causes:              │
+│   • Network request slower than expected                          │
+│   • UI animation blocking the test                                │
+│   • Background loading not completing                             │
+│                                                                   │
+│ 💡 Recommended Actions:                                           │
+│   1. Increase timeout duration                                    │
+│      → Set explicit timeout for slow operations                   │
+│   2. Add explicit waits                                           │
+│      → Wait for specific element states                           │
+╰──────────────────────────────────────────────────────────────────╯
+```
+
+### `flaky` - Detect flaky tests
 
 ```bash
 xcresult-ai flaky <path>
 ```
 
-### `categories`
-
-Show failure category breakdown.
+### `categories` - Show failure breakdown
 
 ```bash
 xcresult-ai categories <path>
 ```
 
-### `summarize`
-
-Summarize test results from a directory.
+### `summarize` - Summarize multiple test files
 
 ```bash
 xcresult-ai summarize <directory>
 ```
 
-### `info`
-
-Show tool information and available commands.
+### `info` - Show tool capabilities
 
 ```bash
 xcresult-ai info
@@ -107,9 +145,7 @@ xcresult-ai info
 
 ## Supported Input Formats
 
-### XCTest Logs
-
-Standard Xcode test output format:
+### XCTest Logs (.log, .txt)
 
 ```
 Test Suite 'MyTests' started at 2024-01-15 10:00:00.000
@@ -120,9 +156,7 @@ Test Case '-[MyTests testFailure]' started.
 Test Case '-[MyTests testFailure]' failed (2.000 seconds).
 ```
 
-### JUnit XML
-
-Standard JUnit XML format (also used by many CI systems):
+### JUnit XML (.xml)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -134,9 +168,7 @@ Standard JUnit XML format (also used by many CI systems):
 </testsuite>
 ```
 
-### xcresult Bundles
-
-Xcode result bundles (requires macOS with Xcode installed):
+### xcresult Bundles (.xcresult)
 
 ```bash
 xcresult-ai analyze MyTests.xcresult
@@ -144,207 +176,90 @@ xcresult-ai analyze MyTests.xcresult
 
 ## Failure Categories
 
-The tool recognizes 23 failure categories:
-
 | Category | Description |
 |----------|-------------|
 | `MISSING_ELEMENT` | UI element not found |
+| `ELEMENT_NOT_HITTABLE` | Element exists but not tappable |
 | `TIMEOUT` | General timeout |
 | `WAIT_TIMEOUT` | Explicit wait timeout |
 | `APP_CRASH` | Application crashed |
 | `ASSERTION_FAILURE` | XCTAssert failed |
 | `VALUE_MISMATCH` | Expected vs actual mismatch |
-| `ELEMENT_NOT_HITTABLE` | Element exists but not tappable |
 | `NETWORK_ERROR` | Network request failed |
-| `AUTHENTICATION_ERROR` | Auth/login failure |
 | `RACE_CONDITION` | Timing-dependent failure |
 | `SYSTEM_ALERT` | Unexpected system dialog |
-| `KEYBOARD_INTERFERENCE` | Keyboard blocking UI |
 | `SNAPSHOT_MISMATCH` | Visual regression detected |
-| `ACCESSIBILITY_ISSUE` | A11y-related failure |
-| `STATE_ERROR` | Invalid app state |
-| `CONFIGURATION_ERROR` | Test setup issue |
+| `KEYBOARD_ISSUE` | Keyboard blocking UI |
+| `ACCESSIBILITY_MISSING` | Missing accessibility identifier |
 | `SIMULATOR_CRASH` | Simulator crashed |
-| `INFRASTRUCTURE_ERROR` | CI/test infra issue |
-| `DATA_ERROR` | Test data problem |
-| `PERMISSION_ERROR` | Missing permissions |
-| `MEMORY_ERROR` | Memory-related crash |
-| `ANIMATION_ISSUE` | Animation timing issue |
-| `UNKNOWN` | Unclassified failure |
+| `MEMORY_ISSUE` | Memory-related crash |
 
-## Output Examples
+*...and 15+ more categories*
 
-### Console Output
+## Output Formats
 
-```
-╭─────────────────────────────────────────────────────────────────╮
-│                    Test Analysis Report                         │
-╰─────────────────────────────────────────────────────────────────╯
+### Console (default)
+Rich terminal output with colors and formatting.
 
-Summary
-┏━━━━━━━━━━━━━━━┳━━━━━━━┓
-┃ Metric        ┃ Value ┃
-┡━━━━━━━━━━━━━━━╇━━━━━━━┩
-│ Total Tests   │ 100   │
-│ Passed        │ 85    │
-│ Failed        │ 15    │
-│ Pass Rate     │ 85.0% │
-│ Flaky Tests   │ 3     │
-└───────────────┴───────┘
-
-Top Failure Categories
-  • missing_element: 5 failures
-  • timeout: 4 failures
-  • assertion_failure: 3 failures
-```
-
-### Markdown Output
-
-```markdown
-# Test Analysis Report
-
-## Summary
-
-| Metric | Value |
-|--------|-------|
-| Total Tests | 100 |
-| Passed | 85 |
-| Failed | 15 |
-| Pass Rate | 85.0% |
-
-## Failures
-
-### 1. testLogin (AuthTests)
-
-**Category:** TIMEOUT
-**Severity:** MEDIUM
-**Message:** Timed out waiting for login button
-
-#### Suggestion: Increase Wait Timeout
-
-The default timeout may be too short for this operation...
-```
-
-### JSON Output
-
-```json
-{
-  "report": {
-    "generated_at": "2024-01-15T10:30:00",
-    "source": "tests.log"
-  },
-  "summary": {
-    "total_tests": 100,
-    "passed": 85,
-    "failed": 15,
-    "pass_rate": 85.0
-  },
-  "failures": [
-    {
-      "test_name": "testLogin",
-      "test_class": "AuthTests",
-      "category": "timeout",
-      "severity": "medium",
-      "message": "Timed out waiting for login button"
-    }
-  ]
-}
-```
-
-## Debugging Suggestions
-
-The tool provides context-aware debugging suggestions based on failure patterns:
-
-```
-┌─ Suggestion: Handle System Alerts ─────────────────────────────┐
-│                                                                 │
-│ System alerts can interrupt test execution. Add an interrupt   │
-│ handler to automatically dismiss them.                         │
-│                                                                 │
-│ Action:                                                         │
-│   Add interrupt handler in setUp():                            │
-│                                                                 │
-│   addUIInterruptionMonitor(withDescription: "Alert") { alert in│
-│       alert.buttons["Allow"].tap()                             │
-│       return true                                               │
-│   }                                                             │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Development
-
-### Running Tests
+### Markdown
+Perfect for GitHub PRs and documentation.
 
 ```bash
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=xcresult_ai_assistant --cov-report=html
-
-# Run specific test file
-pytest tests/test_analyzers.py -v
+xcresult-ai analyze tests.log --format markdown -o report.md
 ```
 
-### Project Structure
+### JSON
+Machine-readable for CI/CD integration.
 
-```
-xcresult-ai-assistant/
-├── src/xcresult_ai_assistant/
-│   ├── models/           # Pydantic data models
-│   │   ├── test_result.py
-│   │   ├── failure.py
-│   │   ├── analysis.py
-│   │   └── report.py
-│   ├── parsers/          # Input format parsers
-│   │   ├── log_parser.py
-│   │   ├── junit_parser.py
-│   │   ├── xcresult_parser.py
-│   │   └── auto_parser.py
-│   ├── analyzers/        # Failure analysis
-│   │   ├── pattern_analyzer.py
-│   │   ├── failure_analyzer.py
-│   │   └── flaky_detector.py
-│   ├── ai/               # Suggestion engine
-│   │   └── suggestion_engine.py
-│   ├── reports/          # Report generators
-│   │   ├── console_reporter.py
-│   │   ├── markdown_reporter.py
-│   │   ├── json_reporter.py
-│   │   └── report_factory.py
-│   └── cli.py            # Typer CLI
-├── tests/                # Pytest test suite
-└── examples/             # Example input files
+```bash
+xcresult-ai analyze tests.log --format json -o report.json
 ```
 
-## Integration
+### HTML
+Styled, interactive web report.
 
-### CI/CD Integration
+```bash
+xcresult-ai analyze tests.log --format html -o report.html
+```
 
-Use JSON output for CI/CD pipelines:
+## CI/CD Integration
+
+### GitHub Actions
 
 ```yaml
-# GitHub Actions example
-- name: Run tests
-  run: xcodebuild test -scheme MyApp -resultBundlePath results.xcresult
+name: Test Analysis
 
-- name: Analyze results
-  run: |
-    pip install xcresult-ai-assistant
-    xcresult-ai analyze results.xcresult --format json --output analysis.json
+on: [push, pull_request]
 
-- name: Upload analysis
-  uses: actions/upload-artifact@v3
-  with:
-    name: test-analysis
-    path: analysis.json
+jobs:
+  analyze:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -scheme MyApp \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -resultBundlePath results.xcresult
+
+      - name: Analyze results
+        run: |
+          pip install git+https://github.com/flakyhunter/xcresult-ai-assistant.git
+          xcresult-ai analyze results.xcresult --format html -o report.html
+          xcresult-ai analyze results.xcresult --format json -o report.json
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-analysis
+          path: |
+            report.html
+            report.json
 ```
 
-### Python API
+## Python API
 
 ```python
 from xcresult_ai_assistant.parsers.auto_parser import AutoParser
@@ -360,18 +275,70 @@ parse_result = parser.parse("tests.log")
 analyzer = FailureAnalyzer()
 analysis = analyzer.analyze(parse_result.test_run)
 
-# Generate report
-report = ReportFactory.generate_report(analysis, ReportFormat.MARKDOWN)
-print(report.content)
+# Generate reports
+markdown_report = ReportFactory.generate_report(analysis, ReportFormat.MARKDOWN)
+html_report = ReportFactory.generate_report(analysis, ReportFormat.HTML)
+
+# Save to files
+ReportFactory.generate_and_save(analysis, "report.html", ReportFormat.HTML)
+
+# Print summary
+print(f"Pass rate: {analysis.pass_rate:.1f}%")
+print(f"Flaky tests: {analysis.flaky_count}")
+print(f"Top category: {analysis.top_categories[0][0]}")
+```
+
+## How It Works
+
+1. **Parsing**: Auto-detects input format and extracts test results
+2. **Pattern Matching**: Matches failure messages against 40+ known patterns
+3. **Categorization**: Assigns failures to categories with confidence scores
+4. **Flaky Detection**: Scores tests for flakiness based on patterns and categories
+5. **Root Cause Analysis**: Groups related failures and identifies common causes
+6. **Suggestions**: Provides actionable debugging steps with code examples
+
+## Development
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=xcresult_ai_assistant --cov-report=html
+
+# Lint
+ruff check src/ tests/
+
+# Type check
+mypy src/
+```
+
+### Project Structure
+
+```
+xcresult-ai-assistant/
+├── src/xcresult_ai_assistant/
+│   ├── models/           # Pydantic data models
+│   ├── parsers/          # Input format parsers
+│   ├── analyzers/        # Failure analysis engines
+│   ├── ai/               # Suggestion engine
+│   ├── reports/          # Report generators (console, md, json, html)
+│   └── cli.py            # Typer CLI
+├── tests/                # Pytest test suite
+├── examples/             # Example input files
+└── .github/workflows/    # CI/CD workflows
 ```
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions are welcome! Please read the contributing guidelines before submitting a pull request.
+Contributions welcome! Please:
 
 1. Fork the repository
 2. Create a feature branch
