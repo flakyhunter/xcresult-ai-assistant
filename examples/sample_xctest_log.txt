@@ -1,0 +1,130 @@
+Test Suite 'LoginTests' started at 2026-05-17 10:00:00.000
+Test Case '-[LoginTests testLoginSuccess]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:01.000
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Tap button "Login"
+    t =     2.80s     Wait for existence of "Welcome" label
+    t =     3.20s     Assertion passed
+    t =     3.25s     Tear Down
+Test Case '-[LoginTests testLoginSuccess]' passed (3.250 seconds).
+Test Case '-[LoginTests testLoginFailure]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:05.000
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Tap button "Login"
+    t =     2.80s     Wait for existence of "Error" label
+    t =     3.50s     XCTAssertTrue failed - Expected error message to appear
+/Users/dev/Project/LoginTests.swift:45: error: -[LoginTests testLoginFailure] : XCTAssertTrue failed - Expected error message not found
+    t =     3.55s     Tear Down
+Test Case '-[LoginTests testLoginFailure]' failed (3.550 seconds).
+Test Case '-[LoginTests testForgotPassword]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:10.000
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Tap button "Forgot Password"
+    t =     7.30s     Timed out waiting for element to exist
+/Users/dev/Project/LoginTests.swift:67: error: -[LoginTests testForgotPassword] : Timed out waiting for "Reset Password" button to appear
+    t =     7.35s     Tear Down
+Test Case '-[LoginTests testForgotPassword]' failed (7.350 seconds).
+Test Suite 'LoginTests' failed at 2026-05-17 10:00:18.000.
+	 Executed 3 tests, with 2 failures (0 unexpected) in 14.150 (14.200) seconds
+
+Test Suite 'NetworkTests' started at 2026-05-17 10:00:20.000
+Test Case '-[NetworkTests testAPIConnection]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:20.500
+    t =     0.50s     Set Up
+    t =     1.00s     Making API request
+    t =    11.00s     Network request failed: NSURLErrorDomain -1001 (timed out)
+/Users/dev/Project/NetworkTests.swift:23: error: -[NetworkTests testAPIConnection] : Network error: The request timed out.
+    t =    11.05s     Tear Down
+Test Case '-[NetworkTests testAPIConnection]' failed (11.050 seconds).
+Test Case '-[NetworkTests testOfflineMode]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:32.000
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     1.80s     Enable offline mode
+    t =     2.30s     Verify offline banner
+    t =     2.50s     Assertion passed
+    t =     2.55s     Tear Down
+Test Case '-[NetworkTests testOfflineMode]' passed (2.550 seconds).
+Test Suite 'NetworkTests' failed at 2026-05-17 10:00:35.000.
+	 Executed 2 tests, with 1 failure (0 unexpected) in 13.600 (13.650) seconds
+
+Test Suite 'UIElementTests' started at 2026-05-17 10:00:36.000
+Test Case '-[UIElementTests testButtonTap]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:36.500
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Query for button "Submit"
+    t =     2.50s     No matches found for: Button, identifier: 'Submit'
+/Users/dev/Project/UIElementTests.swift:34: error: -[UIElementTests testButtonTap] : No matches found for element with identifier 'Submit'
+    t =     2.55s     Tear Down
+Test Case '-[UIElementTests testButtonTap]' failed (2.550 seconds).
+Test Case '-[UIElementTests testScrollToElement]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:39.500
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Scroll down to find element
+    t =     3.50s     Element "TermsAndConditions" is not hittable
+/Users/dev/Project/UIElementTests.swift:52: error: -[UIElementTests testScrollToElement] : Element exists but is not hittable
+    t =     3.55s     Tear Down
+Test Case '-[UIElementTests testScrollToElement]' failed (3.550 seconds).
+Test Case '-[UIElementTests testKeyboardDismiss]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:43.500
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Tap text field
+    t =     2.80s     Type text "hello"
+    t =     3.30s     Tap outside to dismiss keyboard
+    t =     3.80s     Keyboard did not dismiss as expected
+/Users/dev/Project/UIElementTests.swift:78: error: -[UIElementTests testKeyboardDismiss] : Keyboard is still blocking view after dismiss attempt
+    t =     3.85s     Tear Down
+Test Case '-[UIElementTests testKeyboardDismiss]' failed (3.850 seconds).
+Test Suite 'UIElementTests' failed at 2026-05-17 10:00:48.000.
+	 Executed 3 tests, with 3 failures (0 unexpected) in 9.950 (10.000) seconds
+
+Test Suite 'CrashTests' started at 2026-05-17 10:00:49.000
+Test Case '-[CrashTests testCrashRecovery]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:49.500
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Trigger crash scenario
+    t =     2.35s     CRASH: EXC_BAD_ACCESS (code=1, address=0x0)
+    t =     2.35s     Fatal error: Unexpectedly found nil while unwrapping an Optional value
+/Users/dev/Project/ViewController.swift:123: Fatal error: Unexpectedly found nil while unwrapping an Optional value
+    t =     2.40s     Tear Down
+Test Case '-[CrashTests testCrashRecovery]' failed (2.400 seconds).
+Test Suite 'CrashTests' failed at 2026-05-17 10:00:52.000.
+	 Executed 1 test, with 1 failure (0 unexpected) in 2.400 (2.450) seconds
+
+Test Suite 'SnapshotTests' started at 2026-05-17 10:00:53.000
+Test Case '-[SnapshotTests testHomeScreenSnapshot]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:53.500
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Capture snapshot
+    t =     2.80s     Compare with reference
+    t =     3.00s     Snapshot mismatch: 2.3% pixel difference detected
+/Users/dev/Project/SnapshotTests.swift:28: error: -[SnapshotTests testHomeScreenSnapshot] : Snapshot test failed, image differs from reference by more than 1%
+    t =     3.05s     Tear Down
+Test Case '-[SnapshotTests testHomeScreenSnapshot]' failed (3.050 seconds).
+Test Suite 'SnapshotTests' failed at 2026-05-17 10:00:57.000.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.050 (3.100) seconds
+
+Test Suite 'SystemAlertTests' started at 2026-05-17 10:00:58.000
+Test Case '-[SystemAlertTests testLocationPermission]' started.
+    t =     0.00s Start Test at 2026-05-17 10:00:58.500
+    t =     0.50s     Set Up
+    t =     1.20s     Launch application
+    t =     2.30s     Trigger location request
+    t =     2.80s     Unexpected system alert appeared: "Allow Location Access"
+    t =     3.30s     System alert blocked interaction with application
+/Users/dev/Project/SystemAlertTests.swift:19: error: -[SystemAlertTests testLocationPermission] : Unexpected system alert interfered with test
+    t =     3.35s     Tear Down
+Test Case '-[SystemAlertTests testLocationPermission]' failed (3.350 seconds).
+Test Suite 'SystemAlertTests' failed at 2026-05-17 10:01:02.000.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.350 (3.400) seconds
+
+Test Suite 'All tests' finished at 2026-05-17 10:01:02.500.
+	 Executed 11 tests, with 9 failures (0 unexpected) in 46.850 (47.000) seconds

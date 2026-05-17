@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="AllTests" tests="15" failures="6" errors="2" time="45.5">
+  <testsuite name="AuthenticationTests" tests="5" failures="2" errors="0" time="12.3" timestamp="2026-05-17T10:00:00Z">
+    <testcase classname="AuthenticationTests" name="testLoginWithValidCredentials" time="2.5"/>
+    <testcase classname="AuthenticationTests" name="testLoginWithInvalidPassword" time="3.1">
+      <failure message="XCTAssertEqual failed: expected 'Invalid password' but got 'Unknown error'" type="AssertionFailure">
+/Users/dev/Project/AuthenticationTests.swift:34: XCTAssertEqual failed: ("Invalid password") is not equal to ("Unknown error")
+      </failure>
+    </testcase>
+    <testcase classname="AuthenticationTests" name="testLogout" time="1.8"/>
+    <testcase classname="AuthenticationTests" name="testSessionExpiry" time="2.2">
+      <failure message="Timed out waiting for session expiry dialog" type="Timeout">
+/Users/dev/Project/AuthenticationTests.swift:67: Timed out waiting for element to exist: "Session Expired" alert
+      </failure>
+    </testcase>
+    <testcase classname="AuthenticationTests" name="testBiometricAuth" time="2.7"/>
+  </testsuite>
+
+  <testsuite name="DashboardTests" tests="4" failures="1" errors="1" time="15.8" timestamp="2026-05-17T10:00:15Z">
+    <testcase classname="DashboardTests" name="testLoadDashboard" time="3.2"/>
+    <testcase classname="DashboardTests" name="testRefreshData" time="4.5">
+      <failure message="No matches found for element" type="MissingElement">
+/Users/dev/Project/DashboardTests.swift:23: No matches found for: Button, identifier: 'refreshButton'
+The element may not exist or the identifier may have changed.
+      </failure>
+    </testcase>
+    <testcase classname="DashboardTests" name="testNavigateToSettings" time="2.8"/>
+    <testcase classname="DashboardTests" name="testChartInteraction" time="5.3">
+      <error message="App crashed during test" type="Crash">
+EXC_BAD_ACCESS (code=1, address=0x0)
+Thread 0 Crashed:
+0   MyApp   0x0000000104a23f4c ChartView.drawRect + 124
+1   UIKitCore 0x00000001a3b45678 -[UIView displayLayer:] + 456
+Fatal error: Index out of range
+      </error>
+    </testcase>
+  </testsuite>
+
+  <testsuite name="NetworkTests" tests="3" failures="2" errors="0" time="8.9" timestamp="2026-05-17T10:00:35Z">
+    <testcase classname="NetworkTests" name="testAPIEndpointHealth" time="2.1"/>
+    <testcase classname="NetworkTests" name="testDataSync" time="3.5">
+      <failure message="Network request failed" type="NetworkError">
+NSURLErrorDomain -1009: The Internet connection appears to be offline.
+This may be a transient network issue or test environment configuration problem.
+      </failure>
+    </testcase>
+    <testcase classname="NetworkTests" name="testLargeFileUpload" time="3.3">
+      <failure message="Upload timeout" type="Timeout">
+/Users/dev/Project/NetworkTests.swift:89: Request timed out after 30 seconds
+Server may be slow or file too large for test timeout.
+      </failure>
+    </testcase>
+  </testsuite>
+
+  <testsuite name="AccessibilityTests" tests="3" failures="1" errors="1" time="8.5" timestamp="2026-05-17T10:00:50Z">
+    <testcase classname="AccessibilityTests" name="testVoiceOverNavigation" time="2.8"/>
+    <testcase classname="AccessibilityTests" name="testDynamicTypeSupport" time="3.2">
+      <failure message="Accessibility identifier missing" type="AccessibilityIssue">
+/Users/dev/Project/AccessibilityTests.swift:45: Element missing accessibilityIdentifier
+The "Submit Order" button does not have an accessibility identifier set.
+      </failure>
+    </testcase>
+    <testcase classname="AccessibilityTests" name="testReduceMotion" time="2.5">
+      <error message="Simulator settings failed to apply" type="SimulatorError">
+CoreSimulator error: Failed to set accessibility preferences
+The simulator may need to be reset.
+      </error>
+    </testcase>
+  </testsuite>
+</testsuites>

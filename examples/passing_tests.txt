@@ -1,0 +1,23 @@
+Test Suite 'All tests' started at 2026-05-17 09:00:00.000
+Test Suite 'UnitTests' started at 2026-05-17 09:00:00.100
+Test Case '-[UnitTests testAddition]' started.
+Test Case '-[UnitTests testAddition]' passed (0.001 seconds).
+Test Case '-[UnitTests testSubtraction]' started.
+Test Case '-[UnitTests testSubtraction]' passed (0.001 seconds).
+Test Case '-[UnitTests testMultiplication]' started.
+Test Case '-[UnitTests testMultiplication]' passed (0.002 seconds).
+Test Case '-[UnitTests testDivision]' started.
+Test Case '-[UnitTests testDivision]' passed (0.001 seconds).
+Test Suite 'UnitTests' passed at 2026-05-17 09:00:00.200.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.005 (0.100) seconds
+Test Suite 'IntegrationTests' started at 2026-05-17 09:00:00.300
+Test Case '-[IntegrationTests testDatabaseConnection]' started.
+Test Case '-[IntegrationTests testDatabaseConnection]' passed (0.523 seconds).
+Test Case '-[IntegrationTests testUserCreation]' started.
+Test Case '-[IntegrationTests testUserCreation]' passed (0.234 seconds).
+Test Case '-[IntegrationTests testDataPersistence]' started.
+Test Case '-[IntegrationTests testDataPersistence]' passed (0.156 seconds).
+Test Suite 'IntegrationTests' passed at 2026-05-17 09:00:01.500.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.913 (1.200) seconds
+Test Suite 'All tests' passed at 2026-05-17 09:00:01.600.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.918 (1.600) seconds
