@@ -16,7 +16,7 @@ AI-powered assistant for analyzing XCTest failures, xcresult bundles, and test l
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/xcresult-ai-assistant.git
+git clone https://github.com/amatsko/xcresult-ai-assistant.git
 cd xcresult-ai-assistant
 
 # Install with pip (editable mode for development)
@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ### Requirements
 
-- Python 3.12+
+- Python 3.9+
 - macOS (for xcresult bundle parsing with xcresulttool)
 
 ## Quick Start
@@ -63,13 +63,14 @@ Analyze test results and generate a detailed report.
 xcresult-ai analyze <path> [options]
 
 Options:
-  --format, -f    Output format: console, markdown, json (default: console)
-  --output, -o    Output file path
-  --verbose, -v   Enable verbose output
-  --suggestions   Include debugging suggestions (default: true)
-  --no-suggestions  Disable debugging suggestions
-  --stack-traces  Include full stack traces
-  --group, -g     Group failures by category
+  --format, -f         Output format: console, markdown, json (default: console)
+  --output, -o         Output file path
+  --verbose, -V        Enable verbose output
+  --suggestions        Include debugging suggestions (default: true)
+  --no-suggestions     Disable debugging suggestions
+  --stack-traces       Include full stack traces
+  --max-failures, -m   Maximum failures to show (default: 50)
+  --group-by-category  Group failures by category (default: true)
 ```
 
 ### `flaky`
@@ -317,8 +318,7 @@ xcresult-ai-assistant/
 │   │   └── report_factory.py
 │   └── cli.py            # Typer CLI
 ├── tests/                # Pytest test suite
-├── examples/             # Example input files
-└── docs/                 # Additional documentation
+└── examples/             # Example input files
 ```
 
 ## Integration
