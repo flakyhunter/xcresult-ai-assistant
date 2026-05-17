@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-05-17
+
+### Added
+
+- **Xcode 17+ support**: Updated XCTest log parser to handle new test output format
+  - Support for `Module.ClassName` format in test case markers
+  - Support for `(Iteration X of Y)` suffix in test names
+  - Enhanced error message parsing with module prefix support
+- **xcresulttool `--legacy` flag**: Added fallback to legacy mode for Xcode 17+ compatibility
+- **Improved fallback parsing**: Priority file patterns for `StandardOutputAndStandardError.txt` in xcresult bundles
+- **New failure patterns**:
+  - `did NOT exist` patterns for missing UI elements
+  - `within X.Xs` patterns for timeout detection
+  - `StaticText/Button/TextField did NOT exist` specific patterns
+
+### Fixed
+
+- **TIMEOUT status not counted as failure**: Tests with `TestStatus.TIMEOUT` were incorrectly excluded from failure analysis. Now properly included in `is_failure` property
+- **Pattern analyzer regex**: Fixed patterns to match B2Core-style error messages
+
+### Changed
+
+- Enhanced `ASSERTION_FAILURE_PATTERN` to handle `-[Module.Class method]` prefix in error messages
+- Improved `TIMEOUT_PATTERN` with more comprehensive matching
+- Improved `ELEMENT_NOT_FOUND_PATTERN` with XCTest-specific error formats
+
 ## [0.1.0] - 2024-05-17
 
 ### Added
@@ -37,4 +63,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pattern-based failure categorization with 40+ regex patterns
 - Extensible reporter architecture for adding new output formats
 
+[0.2.0]: https://github.com/flakyhunter/xcresult-ai-assistant/releases/tag/v0.2.0
 [0.1.0]: https://github.com/flakyhunter/xcresult-ai-assistant/releases/tag/v0.1.0

@@ -52,7 +52,7 @@ class TestResult(BaseModel):
     @property
     def is_failure(self) -> bool:
         """Check if test is a failure."""
-        return self.status in (TestStatus.FAILED, TestStatus.ERROR, TestStatus.CRASHED)
+        return self.status in (TestStatus.FAILED, TestStatus.ERROR, TestStatus.CRASHED, TestStatus.TIMEOUT)
 
     @property
     def location(self) -> str:

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xcresult-ai-assistant"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI-powered assistant for analyzing xcresult bundles and XCTest failures"
 readme = "README.md"
 license = {text = "MIT"}

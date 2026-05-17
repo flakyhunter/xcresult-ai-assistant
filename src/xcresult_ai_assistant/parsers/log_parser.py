@@ -18,17 +18,20 @@ class LogParser(BaseParser):
     supported_extensions = [".txt", ".log", ".xcresult.log"]
 
     # Patterns for parsing XCTest output
+    # Supports both old format: -[ClassName testMethod]
+    # And new Xcode 17+ format: -[Module.ClassName testMethod] with optional (Iteration X of Y)
     TEST_START_PATTERN = re.compile(
-        r"Test Case '-\[(\w+)\s+(\w+)\]' started\."
+        r"Test Case '-\[([\w.]+)\s+(\w+)\]' started"
     )
     TEST_PASSED_PATTERN = re.compile(
-        r"Test Case '-\[(\w+)\s+(\w+)\]' passed \((\d+\.?\d*) seconds\)\."
+        r"Test Case '-\[([\w.]+)\s+(\w+)\]' passed \((\d+\.?\d*) seconds\)\."
     )
     TEST_FAILED_PATTERN = re.compile(
-        r"Test Case '-\[(\w+)\s+(\w+)\]' failed \((\d+\.?\d*) seconds\)\."
+        r"Test Case '-\[([\w.]+)\s+(\w+)\]' failed \((\d+\.?\d*) seconds\)\."
     )
+    # Supports error messages with module prefix: -[Module.Class method]
     ASSERTION_FAILURE_PATTERN = re.compile(
-        r"([\w/]+\.swift):(\d+):\s*(error|failed|failure):\s*(.+)"
+        r"([\w/\-\.]+\.swift):(\d+):\s*(error|failed|failure):\s*(?:-\[[\w.]+\s+\w+\]\s*:?\s*)?(.+)"
     )
     SUITE_START_PATTERN = re.compile(
         r"Test Suite '(\w+)' started at (.+)"
@@ -40,10 +43,14 @@ class LogParser(BaseParser):
         r"(crash|CRASH|Crash|EXC_BAD_ACCESS|SIGABRT|SIGSEGV|Fatal error)"
     )
     TIMEOUT_PATTERN = re.compile(
-        r"(timed? ?out|timeout|exceeded time limit|wait.*expired|deadline)"
+        r"(timed? ?out|timeout|exceeded time limit|wait.*expired|deadline|did NOT exist within|"
+        r"Waiting \d+.*seconds?.*to exist)",
+        re.IGNORECASE
     )
     ELEMENT_NOT_FOUND_PATTERN = re.compile(
-        r"(No matches found|element.*not found|unable to find|doesn't exist|failed to find)"
+        r"(No matches found|element.*not found|unable to find|doesn't exist|failed to find|"
+        r"did NOT exist|StaticText did NOT exist|Button did NOT exist)",
+        re.IGNORECASE
     )
 
     def can_parse(self, path: Path) -> bool:

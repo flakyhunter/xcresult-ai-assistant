@@ -68,16 +68,26 @@ class XCResultParser(BaseParser):
     def _parse_with_xcresulttool(self, path: Path) -> ParserResult:
         """Parse using xcresulttool."""
         try:
-            # Get root object
+            # Try new API first (Xcode 16+), then fallback to legacy
             result = subprocess.run(
-                ["xcrun", "xcresulttool", "get", "--path", str(path), "--format", "json"],
+                ["xcrun", "xcresulttool", "get", "object", "--path", str(path), "--format", "json"],
                 capture_output=True,
                 text=True,
                 timeout=60,
             )
 
+            # If new API fails, try legacy mode (required for Xcode 17+)
             if result.returncode != 0:
-                self.add_error(f"xcresulttool failed: {result.stderr}")
+                result = subprocess.run(
+                    ["xcrun", "xcresulttool", "get", "--legacy",
+                     "--path", str(path), "--format", "json"],
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                )
+
+            if result.returncode != 0:
+                self.add_warning(f"xcresulttool failed: {result.stderr}")
                 return self._parse_fallback(path)
 
             root_data = json.loads(result.stdout)
@@ -293,20 +303,39 @@ class XCResultParser(BaseParser):
         tests: list[TestResult] = []
         raw_data: dict[str, Any] = {"fallback_mode": True}
 
-        # Look for any readable files in the bundle
-        for file_path in path.rglob("*"):
-            if file_path.is_file() and file_path.suffix in [".txt", ".log"]:
-                try:
-                    content = file_path.read_text(errors="replace")
-                    # Look for test patterns
-                    if "Test Case" in content:
-                        from xcresult_ai_assistant.parsers.log_parser import LogParser
-                        log_parser = LogParser(verbose=self.verbose)
-                        log_result = log_parser.parse_content(content, str(file_path))
-                        if log_result.test_run:
-                            tests.extend(log_result.test_run.all_tests)
-                except Exception:
-                    continue
+        # Priority files to check for test output (Xcode 17+ structure)
+        priority_patterns = [
+            "**/StandardOutputAndStandardError.txt",
+            "**/StandardOutputAndStandardError-*.txt",
+            "**/*stdout*.txt",
+            "**/*output*.txt",
+        ]
+
+        files_to_parse: list[Path] = []
+
+        # First, look for priority files
+        for pattern in priority_patterns:
+            files_to_parse.extend(path.glob(pattern))
+
+        # If no priority files found, fall back to all txt/log files
+        if not files_to_parse:
+            for file_path in path.rglob("*"):
+                if file_path.is_file() and file_path.suffix in [".txt", ".log"]:
+                    files_to_parse.append(file_path)
+
+        # Parse all found files
+        for file_path in files_to_parse:
+            try:
+                content = file_path.read_text(errors="replace")
+                # Look for test patterns
+                if "Test Case" in content or "Test Suite" in content:
+                    from xcresult_ai_assistant.parsers.log_parser import LogParser
+                    log_parser = LogParser(verbose=self.verbose)
+                    log_result = log_parser.parse_content(content, str(file_path))
+                    if log_result.test_run:
+                        tests.extend(log_result.test_run.all_tests)
+            except Exception:
+                continue
 
         if not tests:
             self.add_warning("No test data extracted from xcresult bundle")
